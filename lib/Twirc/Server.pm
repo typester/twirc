@@ -54,22 +54,20 @@ sub ircd_daemon_public {
 sub publish_message {
     my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0];
 
-    debug "publish to irc: $message";
+    debug "publish to irc: $message \n\n";
 
     my ($ircd, $config) = @$heap{qw/ircd config/};
     $message = encode( $config->{client_encoding}, $message );
 
-    debug $config->{client_encoding};
-
     my ($nick, $text) = split ': ', $message;
 
-    if ($nick && !$heap->{nicknames}->{$nick}) {
+    if ($nick && !$heap->{nicknames}->{ $nick = "\@$nick" }) {
         $ircd->yield( add_spoofed_nick => { nick => $nick } );
         $ircd->yield( daemon_cmd_join => $nick, '#twitter' );
         $heap->{nicknames}->{$nick}++;
     }
 
-    if ($nick) {
+    if ($nick && $text) {
         $ircd->yield( daemon_cmd_privmsg => $nick => '#twitter', $text );
     }
     else {

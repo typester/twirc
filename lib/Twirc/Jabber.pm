@@ -95,6 +95,25 @@ sub send_message {
     $kernel->post( $heap->{sid} => output_handler => $node )
 }
 
-sub error_handler { }
+sub error_handler {
+    my ($kernel, $sender, $heap, $error) = @_[KERNEL, SENDER, HEAP, ARG0];
+
+    if ( $error == +PCJ_SOCKETFAIL or $error == +PCJ_SOCKETDISCONNECT or $error == +PCJ_CONNECTFAIL ) {
+        print "Reconnecting!\n";
+        $kernel->post( $sender, 'reconnect' );
+    }
+    elsif ( $error == +PCJ_SSLFAIL ) {
+        print "TLS/SSL negotiation failed\n";
+    }
+    elsif ( $error == +PCJ_AUTHFAIL ) {
+        print "Failed to authenticate\n";
+    }
+    elsif ( $error == +PCJ_BINDFAIL ) {
+        print "Failed to bind a resource\n";
+    }
+    elsif ( $error == +PCJ_SESSIONFAIL ) {
+        print "Failed to establish a session\n";
+    }
+}
 
 1;
