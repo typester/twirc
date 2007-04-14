@@ -1,0 +1,11 @@
+jabber:
+  server: talk.google.com
+  port: 5222
+  username: example@gmail.com
+  password: your password
+
+ircd:
+  port: 6667
+  server_nick: Twirc
+  client_encoding: iso-2022-jp
+
