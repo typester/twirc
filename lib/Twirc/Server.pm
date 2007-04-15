@@ -59,12 +59,15 @@ sub publish_message {
     my ($ircd, $config) = @$heap{qw/ircd config/};
     $message = encode( $config->{client_encoding}, $message );
 
-    my ($nick, $text) = split ': ', $message;
+    my ($nick, $text) = $message =~ /(\w+): (.*)/;
 
-    if ($nick && !$heap->{nicknames}->{ $nick = "\@$nick" }) {
+    $nick = "\@$nick"
+        if ($nick and !$config->{no_nick_tweaks});
+
+    if ($nick && !$heap->{nicknames}->{$nick}) {
+        $heap->{nicknames}->{$nick}++;
         $ircd->yield( add_spoofed_nick => { nick => $nick } );
         $ircd->yield( daemon_cmd_join => $nick, '#twitter' );
-        $heap->{nicknames}->{$nick}++;
     }
 
     if ($nick && $text) {

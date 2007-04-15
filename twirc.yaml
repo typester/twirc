@@ -8,4 +8,5 @@ ircd:
   port: 6667
   server_nick: Twirc
   client_encoding: iso-2022-jp
+#  no_nick_tweaks: 1
 
