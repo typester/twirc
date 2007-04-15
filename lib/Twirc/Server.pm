@@ -59,7 +59,7 @@ sub publish_message {
     my ($ircd, $config) = @$heap{qw/ircd config/};
     $message = encode( $config->{client_encoding}, $message );
 
-    my ($nick, $text) = $message =~ /(\w+): (.*)/;
+    my ($nick, $text) = $message =~ /^(\w+): (.*)/;
 
     $nick = "\@$nick"
         if ($nick and !$config->{no_nick_tweaks});
@@ -70,11 +70,17 @@ sub publish_message {
         $ircd->yield( daemon_cmd_join => $nick, '#twitter' );
     }
 
+    my $say = sub {
+        my ($nick, $text) = @_;
+        $ircd->yield( daemon_cmd_privmsg => $nick => '#twitter', $_ )
+            for split /\r?\n/, $text;
+    };
+
     if ($nick && $text) {
-        $ircd->yield( daemon_cmd_privmsg => $nick => '#twitter', $text );
+        $say->($nick, $text);
     }
     else {
-        $ircd->yield( daemon_cmd_privmsg => $config->{server_nick}, '#twitter', $message );
+        $say->($config->{server_nick}, $message);
     }
 }
 
