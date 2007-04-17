@@ -59,7 +59,7 @@ sub publish_message {
     my ($ircd, $config) = @$heap{qw/ircd config/};
     $message = encode( $config->{client_encoding}, $message );
 
-    my ($nick, $text) = $message =~ /^(\w+): (.*)/;
+    my ($nick, $text) = $message =~ /^(\w+): (.*)/s;
 
     $nick = "\@$nick"
         if ($nick and !$config->{no_nick_tweaks});
