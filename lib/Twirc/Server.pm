@@ -77,6 +77,7 @@ sub publish_message {
     };
 
     if ($nick && $text) {
+        $text =~ s/\r?\n/ /g;
         $say->($nick, $text);
     }
     else {
