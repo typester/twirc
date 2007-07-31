@@ -49,6 +49,7 @@ sub ircd_daemon_public {
     my $encoding = $heap->{config}{client_encoding};
 
     $kernel->post( im => send_message => decode( $encoding, $text ) );
+    $kernel->post( ustream => say => decode( $encoding, $text ) );
 }
 
 sub publish_message {

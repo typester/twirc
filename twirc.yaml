@@ -4,6 +4,12 @@ jabber:
   username: example@gmail.com
   password: your password
 
+## ustream chat support (experimental)
+#ustream:
+#  username: 'yourname|twitter'
+#  channels:
+#    - '#your_channel_name'
+
 ircd:
   port: 6667
   server_nick: Twirc
