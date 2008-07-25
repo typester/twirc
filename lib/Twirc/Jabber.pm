@@ -1,4 +1,5 @@
 package Twirc::Jabber;
+use utf8;
 use Moose;
 
 use POE;
@@ -119,7 +120,7 @@ sub send_message {
 }
 
 sub error_handler {
-    my ($kernel, $sender, $heap, $error) = @_[KERNEL, SENDER, HEAP, ARG0];
+    my ($kernel, $sender, $error) = @_[KERNEL, SENDER, ARG0];
 
     if ( $error == +PCJ_SOCKETFAIL or $error == +PCJ_SOCKETDISCONNECT or $error == +PCJ_CONNECTFAIL ) {
         print "Reconnecting!\n";

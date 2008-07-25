@@ -7,7 +7,6 @@ use POE;
 
 use Twirc::Jabber;
 use Twirc::Server;
-use Twirc::Ustream;
 
 has config => (
     is  => 'rw',

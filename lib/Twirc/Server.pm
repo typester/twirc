@@ -127,7 +127,7 @@ sub ircd_daemon_public {
 }
 
 sub publish_message {
-    my ($self, $kernel, $heap, $msg) = @_[OBJECT, KERNEL, HEAP, ARG0];
+    my ($self, $kernel, $msg) = @_[OBJECT, KERNEL, ARG0];
 
     my ($channel) = map { $_->{name} } grep { $_->{target} =~ /^$msg->{from}/ } @{ $self->channels }
         or return;
