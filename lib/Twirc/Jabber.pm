@@ -1,6 +1,5 @@
 package Twirc::Jabber;
-use strict;
-use warnings;
+use Moose;
 
 use POE;
 use POE::Component::Jabber;
@@ -11,15 +10,37 @@ use POE::Filter::XML::Node;
 use POE::Filter::XML::NS qw/:JABBER :IQ/;
 use POE::Filter::XML::Utils;
 
+has username => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+has password => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+has server => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+has port => (
+    is  => 'rw',
+    isa => 'Int',
+);
+
+has component => (
+    is => 'rw',
+);
+
 sub spawn {
-    my $class = shift;
-    my $config = @_ > 1 ? {@_} : $_[0];
+    my $self = shift;
 
     POE::Session->create(
-        package_states => [
-            __PACKAGE__, [qw/_start status_handler input_handler error_handler send_message/],
+        object_states => [
+            $self => [qw/_start status_handler input_handler error_handler send_message/],
         ],
-        heap => { config => $config },
     );
 }
 
@@ -28,19 +49,18 @@ sub debug(@) {
 }
 
 sub _start {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
+    my ($self, $kernel) = @_[OBJECT, KERNEL];
 
     $kernel->alias_set('im');
 
-    my $config = $heap->{config};
-    my ($username, $hostname) = split '@', $config->{username};
+    my ($username, $hostname) = split '@', $self->username;
 
     my $jabber = POE::Component::Jabber->new(
-        IP       => $config->{server},
-        Port     => $config->{port} || 5222,
+        IP       => $self->server,
+        Port     => $self->port || 5222,
         Hostname => $hostname,
         Username => $username,
-        Password => $config->{password},
+        Password => $self->password,
         Alias    => 'jabber',
         States   => {
             StatusEvent => 'status_handler',
@@ -50,19 +70,19 @@ sub _start {
         ConnectionType => +XMPP,
 #        Debug          => 1,
     );
-    $heap->{jabber} = $jabber;
+    $self->{component} = $jabber;
 
     $kernel->post( jabber => 'connect' );
 }
 
 sub status_handler {
-    my ($kernel, $sender, $heap, $state) = @_[KERNEL, SENDER, HEAP, ARG0];
+    my ($self, $kernel, $sender, $state) = @_[OBJECT, KERNEL, SENDER, ARG0];
 
     if ($state == +PCJ_INIT_FINISHED) {
-        my $jid = $heap->{jabber}->jid;
+        my $jid = $self->component->jid;
 
-        $heap->{jid} = $jid;
-        $heap->{sid} = $sender->ID;
+        $self->{jid} = $jid;
+        $self->{sid} = $sender->ID;
 
         $kernel->post(jabber => 'output_handler', POE::Filter::XML::Node->new('presence'));
         $kernel->post(jabber => 'purge_queue');
@@ -70,29 +90,32 @@ sub status_handler {
 }
 
 sub input_handler {
-    my ($kernel, $heap, $node) = @_[KERNEL, HEAP, ARG0];
+    my ($self, $kernel, $node) = @_[OBJECT, KERNEL, ARG0];
 
     debug "recv:", $node->to_str, "\n\n";
 
     my ($body) = $node->get_tag('body');
-    if ($body && $node->attr('from') =~ /^twitter\@twitter\.com/) {
-        $kernel->post( ircd => 'publish_message', $body->data );
+    if ($body) {
+        $kernel->post( ircd => 'publish_message', {
+            from    => $node->attr('from'),
+            message => $body->data,
+        });
     }
 }
 
 sub send_message {
-    my ($kernel, $heap, $message) = @_[KERNEL, HEAP, ARG0];
+    my ($self, $kernel, $msg) = @_[OBJECT, KERNEL, ARG0];
 
     my $node = POE::Filter::XML::Node->new('message');
 
-    $node->attr('to', 'twitter@twitter.com');
-    $node->attr('from', $heap->{jid} );
+    $node->attr('to', $msg->{to});
+    $node->attr('from', $self->component->jid );
     $node->attr('type', 'chat');
-    $node->insert_tag('body')->data( $message );
+    $node->insert_tag('body')->data( $msg->{message} );
 
     debug "send:", $node->to_str, "\n\n";
 
-    $kernel->post( $heap->{sid} => output_handler => $node )
+    $kernel->post( $self->{sid} => output_handler => $node )
 }
 
 sub error_handler {

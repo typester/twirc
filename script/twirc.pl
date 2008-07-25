@@ -6,17 +6,14 @@ use warnings;
 use Pod::Usage;
 use Getopt::Long;
 
-use FindBin;
-use File::Spec;
-use lib File::Spec->catfile( $FindBin::Bin, '..', 'lib' );
+use FindBin::libs;
 
 use YAML;
 use Twirc;
 
 GetOptions(
     \my %option,
-    'config=s',
-    'help'
+    qw/config=s help/
 );
 pod2usage(1) if $option{help};
 

@@ -1,18 +1,17 @@
 jabber:
   server: talk.google.com
   port: 5222
-  username: example@gmail.com
-  password: your password
-
-## ustream chat support (experimental)
-#ustream:
-#  username: 'yourname|twitter'
-#  channels:
-#    - '#your_channel_name'
+  username: youraddress@gmail.com
+  password: your_password
 
 ircd:
   port: 6667
   server_nick: Twirc
-  client_encoding: iso-2022-jp
+  client_encoding: utf-8
 #  no_nick_tweaks: 1
 
+channels:
+  - name:   '#twitter'
+    target: 'twitter@twitter.com'
+  - name:   '#wassr'
+    target: 'wassr-bot@wassr.jp'
